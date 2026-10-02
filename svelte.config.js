@@ -8,7 +8,8 @@ export default {
 		alias: {
 			$modules: 'src/modules',
 			$network: 'src/network',
-			$shared: 'src/shared'
+			$shared: 'src/shared',
+			$mobile: 'src/mobile'
 		}
 	}
 };

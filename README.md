@@ -15,3 +15,9 @@ Add auth headers later in `src/network/transport/http.ts` (`defaultHeaders`).
 ## Layers
 routes → modules/todos/presentation/pages → components → shared/presentation/ui/*.base → shadcn-ui
 modules/todos/domain → data/api.ts → $network
+
+## Mobile UI (Framework7)
+- Phones/tablets get Framework7 (lazy-loaded from `src/mobile`); desktops get shadcn. Detection: `src/shared/application/device.ts`.
+- Test on desktop with `?ui=mobile` (or `VITE_FORCE_UI=mobile`); `?ui=desktop` goes back.
+- Mobile pages reuse `modules/*/domain` and `data` + `$network`; only `src/mobile/ui/*.base.svelte` imports `framework7-svelte`.
+- F7 keeps its own navigation history (`browserHistory: false`); deep links open the matching page.

@@ -28,6 +28,8 @@
     "vite": "^7.0.0"
   },
   "dependencies": {
-    "@lucide/svelte": "latest"
+    "@lucide/svelte": "latest",
+    "framework7": "^9.2.0",
+    "framework7-svelte": "^9.2.0"
   }
 }

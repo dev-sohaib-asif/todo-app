@@ -13,11 +13,12 @@
 </script>
 
 <!-- onshow: re-fetch when returning from the edit page so changes appear -->
-<Page title={c.todo?.title ?? 'Todo'} back="/todos/" onshow={() => !c.loading && c.load(f7route.params.id)}>
+<Page title="Todo" back onshow={() => !c.loading && c.load(f7route.params.id)}>
 	{#if c.loading && !c.todo}
 		<p class="p-4">Loading…</p>
 	{:else if c.todo}
 		<List>
+			<ListItem title="Title" after={c.todo.title} />
 			<ListItem title="Status" after={c.todo.completed ? 'Completed' : 'Active'} />
 			<ListItem title="Priority" after={c.todo.priority} />
 			<ListItem title="Due date" after={c.todo.dueDate ?? '—'} />

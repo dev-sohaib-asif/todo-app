@@ -13,7 +13,8 @@
 </script>
 
 <!-- onshow: refresh when returning here (e.g. after creating a todo) -->
-<Page title="Todos ({c.remaining} left)" onrefresh={() => c.load()} onshow={() => !c.loading && c.load()}>
+<Page title="Todos" onrefresh={() => c.load()} onshow={() => !c.loading && c.load()}>
+	<p class="px-4 pt-2 text-sm opacity-70">{c.remaining} remaining</p>
 	{#if c.error}<p class="p-4 text-red-600">{c.error}</p>{/if}
 	{#if c.loading && c.todos.length === 0}
 		<p class="p-4">Loading…</p>

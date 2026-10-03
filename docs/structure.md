@@ -157,7 +157,7 @@ Rules:
 | `shared/application/device.ts` | Decides `mobile` or `desktop` once at startup. |
 | `shared/presentation/ui/*.base.svelte` | Desktop wrappers over shadcn-ui. |
 | `mobile/MobileApp.svelte` | Framework7 `<App>` + main `<View>`; imports Framework7 CSS. |
-| `mobile/f7.ts` | Framework7 params (theme auto, dark mode auto, own history) and deep-link `initialUrl()`. |
+| `mobile/f7.ts` | Framework7 params (theme auto, dark mode auto, own history) and `initialUrl` (mobile always starts on the list). |
 | `mobile/routes.ts` | Framework7 routes (async components), same paths as the desktop routes. |
 | `mobile/types.ts` | Minimal `F7Router` / `F7Route` prop types. |
 | `mobile/ui/*.base.svelte` | Mobile wrappers over framework7-svelte: page, list, list-item, field, button, fab. |
@@ -189,4 +189,4 @@ Phones and tablets get Framework7; everything else gets shadcn.
 | `/todos/[id]` | `DetailPage` | `DetailPage.mobile` |
 | `/todos/[id]/edit` | `EditPage` | `EditPage.mobile` |
 
-On mobile, Framework7 keeps its own navigation history (`browserHistory: false`); a deep link opens the matching page.
+On mobile, Framework7 keeps its own navigation history (`browserHistory: false`); mobile always starts on `/todos/`, so every other page has a previous page to go back to.

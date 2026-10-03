@@ -4,17 +4,17 @@
 
 	let {
 		title,
-		back,
+		back = false,
 		onrefresh,
 		onshow,
 		children
 	}: {
+		/** Keep this STATIC. Changing the Navbar title after mount can break its back link. */
 		title: string;
-		/** Show a back link. The URL is the fallback destination when there is no previous page
-		 *  in F7's history (e.g. the app was opened directly on this page). */
-		back?: string;
+		/** Show F7's standard back link. Do not add backLinkUrl/backLinkForce: they push a NEW page instead of going back. */
+		back?: boolean;
 		onrefresh?: () => Promise<void> | void;
-		/** Called every time the page is about to be shown, including when returning to it via back. */
+		/** Called every time the page has finished transitioning in, including when returning to it via back. */
 		onshow?: () => void;
 		children?: Snippet;
 	} = $props();
@@ -23,8 +23,8 @@
 <Page
 	ptr={!!onrefresh}
 	onPtrRefresh={async (done: () => void) => { await onrefresh?.(); done(); }}
-	onPageBeforeIn={() => onshow?.()}
+	onPageAfterIn={() => onshow?.()}
 >
-	<Navbar {title} backLink={back ? 'Back' : undefined} backLinkUrl={back} />
+	<Navbar {title} backLink={back ? 'Back' : undefined} />
 	{@render children?.()}
 </Page>

@@ -5,5 +5,5 @@
 </script>
 
 <App {...f7params}>
-	<View main url={initialUrl()} />
+	<View main url={initialUrl} />
 </App>

@@ -20,4 +20,4 @@ modules/todos/domain → data/api.ts → $network
 - Phones/tablets get Framework7 (lazy-loaded from `src/mobile`); desktops get shadcn. Detection: `src/shared/application/device.ts`.
 - Test on desktop with `?ui=mobile` (or `VITE_FORCE_UI=mobile`); `?ui=desktop` goes back.
 - Mobile pages reuse `modules/*/domain` and `data` + `$network`; only `src/mobile/ui/*.base.svelte` imports `framework7-svelte`.
-- F7 keeps its own navigation history (`browserHistory: false`); deep links open the matching page.
+- F7 keeps its own navigation history (`browserHistory: false`); mobile always starts on the list; never use `backLinkUrl`/`backLinkForce` (they push a new page).

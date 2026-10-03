@@ -16,14 +16,14 @@
 		busy = true;
 		try {
 			await todoApi.update(c.todo!.id, dto);
-			f7router.back(`/todos/${c.todo!.id}/`);
+			f7router.back();
 		} finally {
 			busy = false;
 		}
 	}
 </script>
 
-<Page title="Edit todo" back={`/todos/${f7route.params.id}/`}>
+<Page title="Edit todo" back>
 	{#if c.todo}
 		<TodoForm
 			initial={{ title: c.todo.title, description: c.todo.description, priority: c.todo.priority, dueDate: c.todo.dueDate }}

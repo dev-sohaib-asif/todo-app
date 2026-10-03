@@ -12,13 +12,13 @@
 		busy = true;
 		try {
 			await todoApi.create(dto);
-			f7router.back();
+			f7router.back('/todos/');
 		} finally {
 			busy = false;
 		}
 	}
 </script>
 
-<Page title="New todo" back>
+<Page title="New todo" back="/todos/">
 	<TodoForm submitLabel="Create" {busy} onsubmit={create} />
 </Page>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import Button from '$shared/presentation/ui/button.base.svelte';
 	import Input from '$shared/presentation/ui/input.base.svelte';
 	import Textarea from '$shared/presentation/ui/textarea.base.svelte';
@@ -20,7 +21,8 @@
 		onsubmit: (dto: CreateTodoDto) => void;
 	} = $props();
 
-	let form = $state<CreateTodoDto>({ ...emptyTodoForm(), ...initial });
+	// Intentional: the form is seeded once from `initial`; later edits belong to the user.
+	let form = $state<CreateTodoDto>(untrack(() => ({ ...emptyTodoForm(), ...initial })));
 	let errors = $state<TodoFormErrors>({});
 
 	function submit(e: SubmitEvent) {

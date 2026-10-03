@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import List from '$mobile/ui/list.base.svelte';
 	import Field from '$mobile/ui/field.base.svelte';
 	import Button from '$mobile/ui/button.base.svelte';
@@ -14,7 +15,8 @@
 		onsubmit
 	}: { initial?: CreateTodoDto; submitLabel?: string; busy?: boolean; onsubmit: (dto: CreateTodoDto) => void } = $props();
 
-	let form = $state<CreateTodoDto>({ ...emptyTodoForm(), ...initial });
+	// Intentional: the form is seeded once from `initial`; later edits belong to the user.
+	let form = $state<CreateTodoDto>(untrack(() => ({ ...emptyTodoForm(), ...initial })));
 	let errors = $state<TodoFormErrors>({});
 
 	function submit() {

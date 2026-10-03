@@ -30,6 +30,8 @@ todo-app/
 │   │   │   ├── list.base.svelte
 │   │   │   └── page.base.svelte
 │   │   ├── MobileApp.svelte
+│   │   ├── browser-back.svelte.ts
+│   │   ├── edge-swipe-back.ts
 │   │   ├── f7.ts
 │   │   ├── routes.ts
 │   │   └── types.ts
@@ -191,6 +193,8 @@ Rules:
 | `shared/application/device.ts` | `detectUiMode()`: `mobile` or `desktop`, decided once at startup. |
 | `shared/presentation/ui/*.base.svelte` | Desktop wrappers over shadcn-ui: badge, button, checkbox, empty-state, form-card, input, page-header, textarea. |
 | `mobile/MobileApp.svelte` | Framework7 `<App>` with the main `<View>`; imports Framework7 CSS. |
+| `mobile/browser-back.svelte.ts` | `blockSvelteKitLinkNavigation()` (SvelteKit does not navigate on F7 link clicks) and `useBrowserBack()`: connects the browser/system back button to F7's history using one SvelteKit shallow-routing "guard" history entry. Switch off with `BROWSER_BACK` in `f7.ts`. |
+| `mobile/edge-swipe-back.ts` | `enableEdgeSwipeBack()`: swipe from the left edge calls `router.back()`. Flag `EDGE_SWIPE_BACK` in `f7.ts`. |
 | `mobile/f7.ts` | Framework7 params and `initialUrl` (always `/todos/`). |
 | `mobile/routes.ts` | F7 routes (async components). Same paths as the desktop routes; `new` is listed before `:id`. |
 | `mobile/types.ts` | Minimal `F7Router` / `F7Route` prop types. |
@@ -211,9 +215,12 @@ Phones and tablets get Framework7; everything else gets shadcn.
 These rules came from real bugs; keep them unless you re-test.
 
 **Router and history (`mobile/f7.ts`)**
-- `browserHistory: false`: F7 keeps its own history and the address bar does not change. The browser/system back button is not connected to it.
+- `browserHistory: false`: F7 keeps its own history and the address bar does not change.
+- **Browser/system back button** (`browser-back.svelte.ts`, flag `BROWSER_BACK` in `f7.ts`): one extra "guard" history entry is kept on top via SvelteKit's `pushState` (shallow routing, `page.state.f7guard`). When the browser pops it, F7 goes back one page and the guard is re-added; on F7's first page the browser leaves normally. In-app Back and the edge swipe do not touch browser history. `App.PageState` is declared in `app.d.ts`.
+- **SvelteKit must not navigate on F7 links.** SvelteKit intercepts every same-origin `<a href>` click (such as a `ListItem link`), so both routers navigated at once and history went out of sync. `blockSvelteKitLinkNavigation()` cancels SvelteKit's `link`/`goto` navigations on mobile via `beforeNavigate`; back/forward (`popstate`) is untouched.
 - Always start at `/todos/` so every other page has a real previous page to go back to.
-- View params `iosSwipeBack: false`, `iosDynamicNavbar: false`, `preloadPreviousPage: false` prevent stale "ghost" pages left by interrupted transitions. If one still appears, add `animate: false` to the `view` block.
+- **Swipe-back** is a small custom handler (`edge-swipe-back.ts`, flag `EDGE_SWIPE_BACK` in `f7.ts`): a quick swipe to the right that starts within 24px of the left edge calls `router.back()`. It is not an interactive drag. Framework7's own gesture (`iosSwipeBack`, `mdSwipeBack`) needs `preloadPreviousPage`, and with that on the first Back from Detail to the list stopped working and stale "ghost" pages appeared, so those three params stay `false` (`F7_NATIVE_SWIPE_BACK`). Framework7 v9 also removed the dynamic navbar, so `iosDynamicNavbar` is not used.
+- If a ghost page ever appears, add `animate: false` to the `view` block.
 
 **Pages (`mobile/ui/page.base.svelte`)**
 - Keep the navbar `title` **static**. Changing it after mount broke the back link on the detail page.
@@ -262,6 +269,6 @@ These rules came from real bugs; keep them unless you re-test.
 
 ## Known gaps
 
-- `ListItem` checkbox and swipe-to-delete on mobile are untested after the Framework7 callback issues.
-- The browser/system back button and swipe-back gesture are not connected to Framework7's history.
+- The browser/system back button bridge is new and untested. Reloading drops the guard entry until the app re-adds it on load; the forward button does nothing useful. Set `BROWSER_BACK = false` if it misbehaves.
+- The edge swipe is a quick-swipe handler, not an interactive drag (the page does not follow your finger).
 - Mock data resets on reload; there is no auth, no pagination and no other modules yet.

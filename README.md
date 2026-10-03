@@ -20,4 +20,7 @@ modules/todos/domain → data/api.ts → $network
 - Phones/tablets get Framework7 (lazy-loaded from `src/mobile`); desktops get shadcn. Detection: `src/shared/application/device.ts`.
 - Test on desktop with `?ui=mobile` (or `VITE_FORCE_UI=mobile`); `?ui=desktop` goes back.
 - Mobile pages reuse `modules/*/domain` and `data` + `$network`; only `src/mobile/ui/*.base.svelte` imports `framework7-svelte`.
+- Swipe-back: custom left-edge swipe (`src/mobile/edge-swipe-back.ts`, flag `EDGE_SWIPE_BACK`). F7's native gesture stays off because it needs `preloadPreviousPage`, which broke Back.
+- SvelteKit link interception is cancelled on mobile (`blockSvelteKitLinkNavigation`), otherwise both routers navigate.
+- Browser/system back button: `src/mobile/browser-back.svelte.ts` (flag `BROWSER_BACK` in `f7.ts`).
 - F7 keeps its own navigation history (`browserHistory: false`); mobile always starts on the list; never use `backLinkUrl`/`backLinkForce` (they push a new page).

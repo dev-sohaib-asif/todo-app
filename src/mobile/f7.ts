@@ -4,6 +4,20 @@ import routes from './routes';
 
 Framework7.use(Framework7Svelte);
 
+/**
+ * Framework7's own interactive swipe-back needs `preloadPreviousPage` (the previous page is kept in the DOM).
+ * With it on, the FIRST Back press from Detail to the list stopped working in this app, and stale "ghost"
+ * pages appeared. So it stays OFF, and a simple edge-swipe handler (edge-swipe-back.ts) provides the gesture.
+ * Turn this on only if you accept that risk.
+ */
+const F7_NATIVE_SWIPE_BACK = false;
+
+/** Swipe from the left screen edge to go back one page (see edge-swipe-back.ts). Not interactive: no page-follows-finger drag. */
+export const EDGE_SWIPE_BACK = true;
+
+/** Make the browser/system back button go back inside Framework7 (see browser-back.svelte.ts). */
+export const BROWSER_BACK = true;
+
 export const f7params = {
 	name: 'Todo App',
 	theme: 'auto', // iOS look on iPhone/iPad, Material on Android
@@ -11,12 +25,10 @@ export const f7params = {
 	routes,
 	view: {
 		browserHistory: false, // F7 keeps its own history; the address bar is untouched
-		// Anti-"ghost page" settings. An interrupted or overlapping page transition (including an aborted
-		// swipe-back drag) can leave a stale page/navbar element stuck on top of the current page.
-		iosSwipeBack: false, // no edge-drag gesture, so no half-finished gesture states
-		iosDynamicNavbar: false, // each page keeps its own navbar instead of a shared, animated navbar layer
-		preloadPreviousPage: false // go back by re-creating the previous page instead of reusing a stale one
-		// Last resort if ghost pages still appear: add `animate: false` here (no transitions at all).
+		iosSwipeBack: F7_NATIVE_SWIPE_BACK,
+		mdSwipeBack: F7_NATIVE_SWIPE_BACK,
+		preloadPreviousPage: F7_NATIVE_SWIPE_BACK // going back re-creates the previous page (no stale pages)
+		// If ghost pages still appear, add `animate: false` here (no transitions at all).
 	}
 };
 

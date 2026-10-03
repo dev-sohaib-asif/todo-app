@@ -10,13 +10,18 @@
 	let { f7route, f7router }: { f7route: F7Route; f7router: F7Router } = $props();
 	const c = new TodoItemController();
 	let busy = $state(false);
+	let error = $state<string | null>(null);
 	onMount(() => c.load(f7route.params.id));
 
 	async function save(dto: CreateTodoDto) {
 		busy = true;
+		error = null;
 		try {
 			await todoApi.update(c.todo!.id, dto);
 			f7router.back();
+		} catch (e) {
+			console.error('Save todo failed', e);
+			error = e instanceof Error ? e.message : 'Failed to save';
 		} finally {
 			busy = false;
 		}
@@ -24,6 +29,7 @@
 </script>
 
 <Page title="Edit todo" back>
+	{#if error}<p class="p-4 text-red-600">{error}</p>{/if}
 	{#if c.todo}
 		<TodoForm
 			initial={{ title: c.todo.title, description: c.todo.description, priority: c.todo.priority, dueDate: c.todo.dueDate }}

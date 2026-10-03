@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Button } from 'framework7-svelte';
 	import type { Snippet } from 'svelte';
 
 	let {
@@ -11,4 +10,15 @@
 	}: { fill?: boolean; color?: 'red'; disabled?: boolean; onclick?: () => void; children?: Snippet } = $props();
 </script>
 
-<Button {fill} {color} {disabled} large onClick={() => onclick?.()}>{@render children?.()}</Button>
+<!-- Native <button> with Framework7's button CSS and a normal click handler (no F7 event wiring). -->
+<button
+	type="button"
+	class="button button-large"
+	class:button-fill={fill}
+	class:color-red={color === 'red'}
+	class:disabled
+	{disabled}
+	onclick={() => onclick?.()}
+>
+	{@render children?.()}
+</button>

@@ -5,6 +5,7 @@
 
 	function handle(e: MouseEvent) {
 		e.preventDefault();
+		(e.currentTarget as HTMLElement).blur(); // avoid "aria-hidden on a focused element" when F7 hides this page
 		onclick();
 	}
 </script>

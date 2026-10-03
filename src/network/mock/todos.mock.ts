@@ -2,6 +2,9 @@ import { ApiError, type TodosApi, type Todo } from '../types';
 import { todosSeed } from './todos.seed';
 
 let db: Todo[] = structuredClone(todosSeed); // in-memory, resets on reload
+// crypto.randomUUID() is undefined on insecure origins (e.g. http://192.168.x.x:5173 on a phone).
+const newId = () =>
+	globalThis.crypto?.randomUUID?.() ?? `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 const delay = (ms = 250) => new Promise((r) => setTimeout(r, ms));
 const find = (id: string) => {
 	const t = db.find((x) => x.id === id);
@@ -21,7 +24,7 @@ export const todosMock: TodosApi = {
 	async create(dto) {
 		await delay();
 		const now = new Date().toISOString();
-		const todo: Todo = { id: crypto.randomUUID(), completed: false, createdAt: now, updatedAt: now, ...dto };
+		const todo: Todo = { id: newId(), completed: false, createdAt: now, updatedAt: now, ...dto };
 		db = [todo, ...db];
 		return structuredClone(todo);
 	},

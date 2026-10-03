@@ -12,8 +12,9 @@
 	onMount(() => c.load(f7route.params.id));
 </script>
 
-<Page title={c.todo?.title ?? 'Todo'} back>
-	{#if c.loading}
+<!-- onshow: re-fetch when returning from the edit page so changes appear -->
+<Page title={c.todo?.title ?? 'Todo'} back="/todos/" onshow={() => !c.loading && c.load(f7route.params.id)}>
+	{#if c.loading && !c.todo}
 		<p class="p-4">Loading…</p>
 	{:else if c.todo}
 		<List>

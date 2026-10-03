@@ -1,5 +1,4 @@
-import { f7 } from 'framework7-svelte';
-import type { F7Router } from './types';
+import { goBackOnce } from './navigation';
 
 const EDGE_PX = 24; // gesture must start this close to the left edge
 const MIN_DX = 70; // and travel at least this far to the right
@@ -25,8 +24,7 @@ export function enableEdgeSwipeBack(): () => void {
 		const dt = Date.now() - start.t;
 		start = null;
 		if (dx < MIN_DX || dy > MAX_DY || dt > MAX_MS) return;
-		const router = f7.views?.main?.router as unknown as F7Router | undefined;
-		if (router && router.history.length > 1) router.back();
+		goBackOnce(); // shared with the browser-back bridge so one gesture never goes back twice
 	};
 
 	// Touch events (phones, tablets, DevTools touch emulation): still delivered when the browser starts panning.

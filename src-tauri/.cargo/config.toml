@@ -1,12 +1,12 @@
 [build]
-jobs = 2
-rustflags =  ["-Z", "threads=4"]
+#jobs = 2
+#rustflags =  ["-Z", "threads=4"]
 
 [unstable]
-codegen-backend = true
+#codegen-backend = true
 
 [profile.dev]
-codegen-backend = "cranelift"
+#codegen-backend = "cranelift"
 
 [net]
 git-fetch-with-cli = true

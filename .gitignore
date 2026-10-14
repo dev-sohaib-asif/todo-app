@@ -2,3 +2,7 @@ node_modules
 .svelte-kit
 build
 .env
+# Android release signing — never commit keys or passwords
+*.jks
+*.keystore
+src-tauri/gen/android/keystore.properties

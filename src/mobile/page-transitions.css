@@ -1,0 +1,63 @@
+/* Page transitions replacing Framework7's router animations, via the View
+   Transitions API. Direction is set on <html data-vt="forward|backward"> by
+   MobileApp's onNavigate hook. Keyframes (ios-page-*, md-page-*) and the
+   --f7-page-transition-duration variable ship with framework7/css/bundle. */
+
+::view-transition {
+  background: var(--f7-page-bg-color, #fff);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--f7-page-transition-duration, 400ms);
+  animation-fill-mode: both;
+}
+
+html.ios[data-vt='forward']::view-transition-old(root) {
+  animation-name: ios-page-current-to-previous;
+}
+
+html.ios[data-vt='forward']::view-transition-new(root) {
+  animation-name: ios-page-next-to-current;
+}
+
+html.ios[data-vt='backward']::view-transition-old(root) {
+  z-index: 2;
+  animation-name: ios-page-current-to-next;
+}
+
+html.ios[data-vt='backward']::view-transition-new(root) {
+  z-index: 1;
+  animation-name: ios-page-previous-to-current;
+}
+
+html.md[data-vt='forward']::view-transition-old(root) {
+  animation-name: md-page-current-to-previous;
+  animation-timing-function: cubic-bezier(0, 0.8, 0.3, 1);
+}
+
+html.md[data-vt='forward']::view-transition-new(root) {
+  animation-name: md-page-next-to-current;
+  animation-timing-function: cubic-bezier(0, 0.8, 0.3, 1);
+}
+
+html.md[data-vt='backward']::view-transition-old(root) {
+  z-index: 2;
+  animation-name: md-page-current-to-next, md-page-current-to-next-opacity;
+  animation-duration: calc(var(--f7-page-transition-duration, 400ms) / 2);
+  animation-timing-function: cubic-bezier(0, 1, 0.8, 1), linear;
+}
+
+html.md[data-vt='backward']::view-transition-new(root) {
+  z-index: 1;
+  animation-name: md-page-previous-to-current;
+  animation-duration: calc(var(--f7-page-transition-duration, 400ms) / 2);
+  animation-timing-function: cubic-bezier(0, 1, 0.8, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}

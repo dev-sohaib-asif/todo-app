@@ -23,6 +23,7 @@ todo-app/
 │   │   │               ├── ListPage.mobile.svelte
 │   │   │               └── NewPage.mobile.svelte
 │   │   ├── ui/
+│   │   │   ├── back.ts
 │   │   │   ├── button.base.svelte
 │   │   │   ├── fab.base.svelte
 │   │   │   ├── field.base.svelte
@@ -30,7 +31,9 @@ todo-app/
 │   │   │   ├── list.base.svelte
 │   │   │   └── page.base.svelte
 │   │   ├── MobileApp.svelte
-│   │   └── f7.ts
+│   │   ├── edge-swipe-back.ts
+│   │   ├── f7.ts
+│   │   └── page-transitions.css
 │   ├── modules/
 │   │   └── todos/
 │   │       ├── data/
@@ -215,9 +218,18 @@ These rules came from real bugs; keep them unless you re-test.
 **Framework7 is UI only — SvelteKit owns routing**
 - F7's router is **not used**: no `<View>` component, no F7 `routes`, no F7 history (`browserHistory` is gone with the router). URLs, navigation and back are plain SvelteKit (`goto()`, `history.back()`, links), so the browser/system back gesture and the in-app Back control always pop the same history entry — the back button can never exit the app after a chain of navigations (the bug that removed the old "guard" bridge).
 - `clicks: { externalLinks: 'a' }` in `mobile/f7.ts` is mandatory: F7's document-wide click handler then treats every `<a>` as external and returns **before** `preventDefault`, so SvelteKit's link handling (which bails when `event.defaultPrevented`) runs untouched. `ListItem link="…"` links therefore navigate exactly once, via SvelteKit.
-- `mobile/routes.ts`, `navigation.ts`, `browser-back.svelte.ts` (the `pushState` guard + `blockSvelteKitLinkNavigation`) and `edge-swipe-back.ts` were deleted with the F7 router. Do not reintroduce a second history manager: the browser's own back/edge-swipe/system-back pops SvelteKit history directly.
+- `mobile/routes.ts`, `navigation.ts` and `browser-back.svelte.ts` (the `pushState` guard + `blockSvelteKitLinkNavigation`) were deleted with the F7 router. Do not reintroduce a second history manager: the browser's own back/edge-swipe/system-back pops SvelteKit history directly.
 - Page lifecycle events (`onPageAfterIn`, `pageInit`, …) never fire without the F7 router, so `onshow` was removed. Pages refetch in `onMount`: SvelteKit remounts the page component on every navigation to its route, including back navigation.
 - Params come from `$app/state` (`page.params.id`), same as the desktop skeletons.
+
+**Page transitions (`MobileApp.svelte` + `page-transitions.css`)**
+- F7's router used to animate push/pop; that is reimplemented with the **View Transitions API**: `onNavigate` in `MobileApp.svelte` (mobile-only mount point) calls `document.startViewTransition`, sets `data-vt="forward|backward"` on `<html>` from route-depth comparison, and resolves its promise inside the transition callback (SvelteKit's documented pattern) while awaiting `navigation.complete`.
+- `page-transitions.css` reuses F7's own keyframes (`ios-page-*`, `md-page-*`, `--f7-page-transition-duration`) on `::view-transition-old/new(root)`, scoped by `html.ios` / `html.md` + `[data-vt]`. `data-vt` is removed when the transition finishes.
+- Skipped entirely when `document.startViewTransition` is missing or `prefers-reduced-motion: reduce` is set (instant swap, same as no transition). Desktop never registers the hook.
+
+**Edge-swipe back (`mobile/edge-swipe-back.ts`)**
+- Revived as a plain touch gesture (no router): a quick left-edge swipe right on any page with `back` calls the shared `ui/back.ts` `goBack()` (`history.back()`, deep-link fallback `goto('/todos')`). Wired in `page.base.svelte`'s `onMount` only when `back` is set; cleanup on unmount. It is **non-interactive** (the page does not follow the finger) — that keeps it compatible with PTR and swipeout, and one gesture can never go back twice.
+- All in-app "go back" call sites use `ui/back.ts` — never `goto()` for back, which would push a new entry.
 
 **Pages (`mobile/ui/page.base.svelte`)**
 - Keep the navbar `title` **static**; changing it after mount is a known F7 quirk (navbar sizing).
@@ -236,9 +248,15 @@ These rules came from real bugs; keep them unless you re-test.
 
 **Components whose callbacks did not fire**
 - `fab.base.svelte` is built from F7's CSS classes (`fab fab-right-bottom`) with a native click handler. The `<Fab>` component's `onClick` did not fire and its `fixed` slot did not render.
-- `field.base.svelte` uses native `<input>`, `<textarea>` and `<select>` with `bind:value` inside F7 list-input classes, because `<ListInput>`'s `onInput` was not reliable.
+- `field.base.svelte` uses native `<input>`, `<textarea>` and `<select>` with `bind:value` inside F7 list-input classes, because `<ListInput>`'s `onInput` was not reliable. It manually toggles F7's focus classes (`item-input-focused` / `input-focused` on focus/blur) — normally added by F7's Input module, which never sees our native inputs — and renders F7's `.input-clear-button` (shown via the `item-input-with-value` class) when `clearable` is set (Title field).
 - `button.base.svelte` is a native `<button>` with F7's button CSS.
-- `list-item.base.svelte` still uses F7's `ListItem`, `SwipeoutActions` and `SwipeoutButton` (checkbox toggle and swipe-to-delete). If either stops working, convert it the same way.
+- `list-item.base.svelte` still uses F7's `ListItem`, `SwipeoutActions` and `SwipeoutButton` (checkbox toggle and swipe-to-delete; the delete confirm runs through F7's Dialog, which **is** in the lite bundle). If either stops working, convert it the same way.
+
+**List page UX (`ListPage.mobile.svelte`)**
+- F7 `.segmented segment-colored` filter buttons (All/Active/Done) bound to the shared controller's `filter` state (same filter values as the desktop skeleton).
+- Loading state uses F7 skeleton rows (`.skeleton-text` + `.skeleton-effect-wave`) instead of plain "Loading…" text; Edit/Detail pages use the same pattern.
+- Swipe-delete and Detail delete both show `f7.toast` ("Todo deleted"); Detail delete confirms via `f7.dialog.confirm` and pops back with `ui/back.ts`.
+- Empty filtered list shows a hint instead of a blank page.
 
 **Form safety**
 - `TodoForm.*` seeds its state once from `initial` using `untrack`.

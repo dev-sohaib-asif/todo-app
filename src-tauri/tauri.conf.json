@@ -2,9 +2,9 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "todo-app",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.todoapp",
   "build": {
-    "frontendDist": "../public",
+    "frontendDist": "../build",
     "devUrl": "http://localhost:5173",
     "beforeDevCommand": "pnpm dev --host",
     "beforeBuildCommand": "pnpm build"

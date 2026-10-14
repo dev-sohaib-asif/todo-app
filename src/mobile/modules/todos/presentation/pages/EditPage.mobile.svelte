@@ -42,6 +42,17 @@
 			onsubmit={save}
 		/>
 	{:else if c.loading}
-		<p class="p-4">Loading…</p>
+		<ul class="list skeleton-effect-wave">
+			{#each Array(4) as _}
+				<li>
+					<div class="item-content item-input">
+						<div class="item-inner">
+							<div class="item-title item-label skeleton-text">Field label</div>
+							<div class="item-input-wrap"><div class="skeleton-text">Input value text</div></div>
+						</div>
+					</div>
+				</li>
+			{/each}
+		</ul>
 	{/if}
 </Page>

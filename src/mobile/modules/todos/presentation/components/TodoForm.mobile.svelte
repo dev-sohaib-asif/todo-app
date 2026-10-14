@@ -27,7 +27,7 @@
 </script>
 
 <List>
-	<Field label="Title" bind:value={form.title} error={errors.title} />
+	<Field label="Title" bind:value={form.title} error={errors.title} clearable />
 	<Field label="Description" type="textarea" bind:value={form.description} error={errors.description} />
 	<Field
 		label="Priority"

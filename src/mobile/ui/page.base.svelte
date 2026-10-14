@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 	import { Page, Navbar, f7, f7ready } from 'framework7-svelte';
 	import type { Snippet } from 'svelte';
+	import { goBack } from './back';
+	import { enableEdgeSwipeBack } from '$mobile/edge-swipe-back';
 
 	let {
 		title,
@@ -23,23 +24,18 @@
 	const hostId = crypto.randomUUID();
 	let ptrEl: HTMLElement | null = null;
 
-	function goBack(e: MouseEvent) {
-		e.preventDefault(); // href is only a fallback; the click itself must pop history
-		// Deep link (first history entry): go to the list instead of leaving the app.
-		if (history.length > 1) history.back();
-		else void goto('/todos');
-	}
-
 	onMount(() => {
-		if (!onrefresh) return;
-		// Framework7 creates PTR instances in its router's pageInit hook, which never runs here
-		// (SvelteKit owns routing). Create it manually once the F7 app is ready.
-		f7ready((f7app) => {
-			const el = document.querySelector<HTMLElement>(`[data-ptr-host="${hostId}"] .ptr-content`);
-			if (!el?.isConnected) return; // page unmounted before the app was ready
-			ptrEl = el;
-			f7app.ptr.create(el);
-		});
+		if (onrefresh) {
+			// Framework7 creates PTR instances in its router's pageInit hook, which never runs here
+			// (SvelteKit owns routing). Create it manually once the F7 app is ready.
+			f7ready((f7app) => {
+				const el = document.querySelector<HTMLElement>(`[data-ptr-host="${hostId}"] .ptr-content`);
+				if (!el?.isConnected) return; // page unmounted before the app was ready
+				ptrEl = el;
+				f7app.ptr.create(el);
+			});
+		}
+		if (back) return enableEdgeSwipeBack(); // iOS-style left-edge swipe to go back
 	});
 
 	onDestroy(() => {
@@ -51,8 +47,16 @@
 	{#if back}
 		<!-- Same DOM F7's Navbar backLink renders (a.link.back.icon-only > i.icon-back), but the
 		     click is ours: history.back() pops the SvelteKit entry the browser back button pops too.
-		     href is a real fallback only; goBack always preventDefaults. -->
-		<a href="/todos" class="link back icon-only" aria-label="Back" onclick={goBack}>
+		     href is a real fallback only; the click handler always preventDefaults. -->
+		<a
+			href="/todos"
+			class="link back icon-only"
+			aria-label="Back"
+			onclick={(e) => {
+				e.preventDefault();
+				goBack();
+			}}
+		>
 			<i class="icon icon-back"></i>
 		</a>
 	{/if}

@@ -16,7 +16,7 @@
 			title={todo.title}
 			subtitle={todo.dueDate ? `Due ${todo.dueDate}` : undefined}
 			after={todo.priority}
-			href="/todos/{todo.id}/"
+			href="/todos/{todo.id}"
 			checked={todo.completed}
 			ontoggle={() => ontoggle(todo)}
 			onremove={() => onremove(todo.id)}

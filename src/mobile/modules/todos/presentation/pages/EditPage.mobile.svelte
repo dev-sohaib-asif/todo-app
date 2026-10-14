@@ -1,24 +1,28 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import Page from '$mobile/ui/page.base.svelte';
 	import TodoForm from '../components/TodoForm.mobile.svelte';
 	import { TodoItemController } from '$modules/todos/domain/todo-route-controllers.svelte';
 	import { todoApi } from '$modules/todos/data/api';
 	import type { CreateTodoDto } from '$modules/todos/domain/types';
-	import type { F7Route, F7Router } from '$mobile/types';
 
-	let { f7route, f7router }: { f7route: F7Route; f7router: F7Router } = $props();
 	const c = new TodoItemController();
 	let busy = $state(false);
 	let error = $state<string | null>(null);
-	onMount(() => c.load(f7route.params.id));
+	onMount(() => c.load(page.params.id!));
 
 	async function save(dto: CreateTodoDto) {
 		busy = true;
 		error = null;
 		try {
 			await todoApi.update(c.todo!.id, dto);
-			f7router.back();
+			// Pop this form's history entry instead of pushing another detail entry.
+			// A push left the form in the stack, so Back from the detail returned to the
+			// stale form first. The detail remounts on the pop and refetches saved data.
+			if (history.length > 1) history.back();
+			else void goto(`/todos/${c.todo!.id}`, { replaceState: true }); // deep link: nothing to pop
 		} catch (e) {
 			console.error('Save todo failed', e);
 			error = e instanceof Error ? e.message : 'Failed to save';

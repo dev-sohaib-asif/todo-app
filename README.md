@@ -20,7 +20,7 @@ modules/todos/domain → data/api.ts → $network
 - Phones/tablets get Framework7 (lazy-loaded from `src/mobile`); desktops get shadcn. Detection: `src/shared/application/device.ts`.
 - Test on desktop with `?ui=mobile` (or `VITE_FORCE_UI=mobile`); `?ui=desktop` goes back.
 - Mobile pages reuse `modules/*/domain` and `data` + `$network`; only `src/mobile/ui/*.base.svelte` imports `framework7-svelte`.
-- Swipe-back: custom left-edge swipe (`src/mobile/edge-swipe-back.ts`, flag `EDGE_SWIPE_BACK`). F7's native gesture stays off because it needs `preloadPreviousPage`, which broke Back.
-- SvelteKit link interception is cancelled on mobile (`blockSvelteKitLinkNavigation`), otherwise both routers navigate.
-- Browser/system back button: `src/mobile/browser-back.svelte.ts` (flag `BROWSER_BACK` in `f7.ts`).
-- F7 keeps its own navigation history (`browserHistory: false`); mobile always starts on the list; never use `backLinkUrl`/`backLinkForce` (they push a new page).
+- Framework7 is UI only — no F7 router. SvelteKit owns URLs, history and the back button (`goto()`, `history.back()`, links), so the browser/system back gesture always pops in-app history and never exits the app.
+- F7's click hijack is neutralized with `clicks: { externalLinks: 'a' }` (`src/mobile/f7.ts`), so F7 never `preventDefault`s an anchor and SvelteKit's link handling always runs.
+- Each route file branches per UI (`detectUiMode()`): desktop skeleton via static import, mobile page via dynamic import (keeps `framework7-svelte` out of the desktop bundle).
+- Navbar Back and pull-to-refresh are wired manually in `src/mobile/ui/page.base.svelte`, because F7's router hooks (`pageInit`, `onPageAfterIn`) never run.

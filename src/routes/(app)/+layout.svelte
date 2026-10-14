@@ -1,26 +1,26 @@
 <script lang="ts">
-	import { onMount, type Component } from 'svelte';
+	import { onMount, type Component, type Snippet } from 'svelte';
 	import { ListChecks } from '@lucide/svelte';
 	import { detectUiMode } from '$shared/application/device';
 
 	let { children } = $props();
-	let mode = $state<'pending' | 'desktop' | 'mobile'>('pending');
-	let MobileApp = $state<Component | null>(null);
+	// ssr = false (src/routes/+layout.ts), so this only ever runs in the browser.
+	const isMobile = detectUiMode() === 'mobile';
+	let MobileApp = $state<Component<{ children?: Snippet }> | null>(null);
 
-	onMount(async () => {
-		if (detectUiMode() === 'mobile') {
+	onMount(() => {
+		if (isMobile) {
 			// Lazy: Framework7 JS/CSS is only downloaded on phones and tablets.
-			MobileApp = (await import('$mobile/MobileApp.svelte')).default;
-			mode = 'mobile';
-		} else {
-			mode = 'desktop';
+			import('$mobile/MobileApp.svelte').then((m) => (MobileApp = m.default));
 		}
 	});
 </script>
 
-{#if mode === 'mobile' && MobileApp}
-	<MobileApp />
-{:else if mode === 'desktop'}
+{#if isMobile}
+	{#if MobileApp}
+		<MobileApp>{@render children()}</MobileApp>
+	{/if}
+{:else}
 	<header class="border-b">
 		<div class="mx-auto flex max-w-3xl items-center gap-2 p-4">
 			<ListChecks class="size-5" />

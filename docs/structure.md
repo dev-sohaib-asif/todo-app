@@ -30,12 +30,7 @@ todo-app/
 │   │   │   ├── list.base.svelte
 │   │   │   └── page.base.svelte
 │   │   ├── MobileApp.svelte
-│   │   ├── browser-back.svelte.ts
-│   │   ├── edge-swipe-back.ts
-│   │   ├── navigation.ts
-│   │   ├── f7.ts
-│   │   ├── routes.ts
-│   │   └── types.ts
+│   │   └── f7.ts
 │   ├── modules/
 │   │   └── todos/
 │   │       ├── data/
@@ -152,19 +147,25 @@ Empty folder not shown: `static/`.
 ## Two UIs, one core
 
 ```
-                  routes/(app)/+layout.svelte
-                  detectUiMode()  (shared/application/device.ts)
-                   /                               \
-        desktop   /                                 \  phone / tablet  (lazy import)
-                 ↓                                   ↓
- routes/(app)/todos/**/+page.svelte         mobile/MobileApp.svelte  (Framework7 <App> + <View>)
-   → modules/*/presentation/pages             → mobile/routes.ts  (F7 routes, async components)
-   → modules/*/presentation/components        → mobile/modules/*/presentation/pages
-   → shared/presentation/ui/*.base.svelte     → mobile/modules/*/presentation/components
-   → shared/presentation/ui/shadcn-ui/*       → mobile/ui/*.base.svelte
-                                              → framework7-svelte / F7 CSS classes
-                 \                                   /
-                  ↘                                 ↙
+                 routes/(app)/+layout.svelte
+                 detectUiMode()  (shared/application/device.ts)
+                  /                               \
+       desktop   /                                 \  phone / tablet  (lazy import)
+                ↓                                   ↓
+   header + <main>{@render children()}</main>   mobile/MobileApp.svelte  (Framework7 <App>, UI only)
+                \                               /   + <div class="view view-main">
+                 \                             /
+            routes/(app)/todos/**/+page.svelte   ← same SvelteKit routes, URLs and history for both UIs
+                 detectUiMode() branch per route
+                 /                             \
+    desktop     /                               \   mobile (dynamic import)
+               ↓                                 ↓
+   modules/*/presentation/pages         mobile/modules/*/presentation/pages
+   modules/*/presentation/components    mobile/modules/*/presentation/components
+   shared/presentation/ui/*.base        mobile/ui/*.base.svelte
+   shared/presentation/ui/shadcn-ui/*   framework7-svelte / F7 CSS classes
+                \                             /
+                 ↘                           ↙
               modules/*/domain   (types, validator, form, bindings, controllers)
                                ↓
                       modules/*/data/api.ts
@@ -174,15 +175,15 @@ Empty folder not shown: `static/`.
 
 Rules:
 - Only `shared/presentation/ui/*.base.svelte` imports shadcn-ui.
-- Only `mobile/ui/*.base.svelte` touches Framework7 (the `framework7-svelte` package or its CSS classes).
+- Only `mobile/ui/*.base.svelte` and `mobile/MobileApp.svelte` touch Framework7 (the `framework7-svelte` package or its CSS classes).
 - `domain/`, `data/` and `network/` never import any UI library, so both UIs share them.
-- Routes contain a one-line import of a page skeleton and no logic.
+- Route files call `detectUiMode()` and branch: desktop skeleton (static import) or mobile page (dynamic import, so `framework7-svelte` never enters the desktop bundle). No other logic.
 
 ## Folder reference
 
 | Path | Purpose |
 | --- | --- |
-| `routes/` | SvelteKit routing. `+layout.ts` sets `ssr = false`; `+page.ts` redirects `/` to `/todos`; `(app)/+layout.svelte` picks desktop or mobile UI. |
+| `routes/` | SvelteKit routing. `+layout.ts` sets `ssr = false`; `+page.ts` redirects `/` to `/todos`; `(app)/+layout.svelte` renders the desktop shell or wraps `children` in the lazy `MobileApp`. Each `(app)` route file branches on `detectUiMode()`. |
 | `modules/todos/presentation/pages` | Desktop page skeletons: List, New, Detail, Edit. |
 | `modules/todos/presentation/components` | Desktop feature UI: `TodoForm`, `TodosData`, `DetailTodoData`. |
 | `modules/todos/domain` | `types`, `validator`, `form` (defaults), `bindings` (priority options/badges), `todo-route-controllers.svelte.ts` (rune-based list and item controllers). Shared by desktop and mobile. |
@@ -193,13 +194,8 @@ Rules:
 | `network/transport/http.ts` | `fetch` wrapper using `VITE_BASE_URL`; `defaultHeaders()` is where auth goes later. |
 | `shared/application/device.ts` | `detectUiMode()`: `mobile` or `desktop`, decided once at startup. |
 | `shared/presentation/ui/*.base.svelte` | Desktop wrappers over shadcn-ui: badge, button, checkbox, empty-state, form-card, input, page-header, textarea. |
-| `mobile/MobileApp.svelte` | Framework7 `<App>` with the main `<View>`; imports Framework7 CSS. |
-| `mobile/browser-back.svelte.ts` | `blockSvelteKitLinkNavigation()` (SvelteKit does not navigate on F7 link clicks) and `useBrowserBack()`: connects the browser/system back button to F7's history using one SvelteKit shallow-routing "guard" history entry. Switch off with `BROWSER_BACK` in `f7.ts`. |
-| `mobile/edge-swipe-back.ts` | `enableEdgeSwipeBack()`: swipe from the left edge calls `router.back()`. Flag `EDGE_SWIPE_BACK` in `f7.ts`. |
-| `mobile/navigation.ts` | `goBackOnce()`: the single "go back" shared by the edge swipe and the browser-back bridge. A swipe can fire both (the browser's own edge/trackpad gesture goes back in browser history while our handler also fires), so a 600ms window stops the second one from going back again. |
-| `mobile/f7.ts` | Framework7 params and `initialUrl` (always `/todos/`). |
-| `mobile/routes.ts` | F7 routes (async components). Same paths as the desktop routes; `new` is listed before `:id`. |
-| `mobile/types.ts` | Minimal `F7Router` / `F7Route` prop types. |
+| `mobile/MobileApp.svelte` | Framework7 `<App>` shell (UI only) with a `.view.view-main` wrapper; imports Framework7 CSS. SvelteKit pages render inside it as children. |
+| `mobile/f7.ts` | Framework7 install (`Framework7.use(...)`) and params. `clicks: { externalLinks: 'a' }` is mandatory: it stops F7 from intercepting `<a>` clicks so SvelteKit's link handling runs untouched. |
 | `mobile/ui/*.base.svelte` | Mobile wrappers: `page`, `list`, `list-item`, `field`, `button`, `fab`. |
 | `mobile/modules/todos/presentation` | Mobile pages and components; reuse the shared domain and data layers. |
 
@@ -216,19 +212,27 @@ Phones and tablets get Framework7; everything else gets shadcn.
 
 These rules came from real bugs; keep them unless you re-test.
 
-**Router and history (`mobile/f7.ts`)**
-- `browserHistory: false`: F7 keeps its own history and the address bar does not change.
-- **Browser/system back button** (`browser-back.svelte.ts`, flag `BROWSER_BACK` in `f7.ts`): one extra "guard" history entry is kept on top via SvelteKit's `pushState` (shallow routing, `page.state.f7guard`). When the browser pops it, F7 goes back one page and the guard is re-added; on F7's first page the browser leaves normally. In-app Back and the edge swipe do not touch browser history. `App.PageState` is declared in `app.d.ts`.
-- **One gesture, one back.** The browser's own edge-swipe or trackpad gesture can pop browser history at the same moment our edge swipe fires. Both call `goBackOnce()` (`navigation.ts`), and the guard entry is re-added with retries, so a swipe never goes back twice or leaves the app by accident.
-- **SvelteKit must not navigate on F7 links.** SvelteKit intercepts every same-origin `<a href>` click (such as a `ListItem link`), so both routers navigated at once and history went out of sync. `blockSvelteKitLinkNavigation()` cancels SvelteKit's `link`/`goto` navigations on mobile via `beforeNavigate`; back/forward (`popstate`) is untouched.
-- Always start at `/todos/` so every other page has a real previous page to go back to.
-- **Swipe-back** is a small custom handler (`edge-swipe-back.ts`, flag `EDGE_SWIPE_BACK` in `f7.ts`): a quick swipe to the right that starts within 24px of the left edge calls `router.back()`. It is not an interactive drag. Framework7's own gesture (`iosSwipeBack`, `mdSwipeBack`) needs `preloadPreviousPage`, and with that on the first Back from Detail to the list stopped working and stale "ghost" pages appeared, so those three params stay `false` (`F7_NATIVE_SWIPE_BACK`). Framework7 v9 also removed the dynamic navbar, so `iosDynamicNavbar` is not used.
-- If a ghost page ever appears, add `animate: false` to the `view` block.
+**Framework7 is UI only — SvelteKit owns routing**
+- F7's router is **not used**: no `<View>` component, no F7 `routes`, no F7 history (`browserHistory` is gone with the router). URLs, navigation and back are plain SvelteKit (`goto()`, `history.back()`, links), so the browser/system back gesture and the in-app Back control always pop the same history entry — the back button can never exit the app after a chain of navigations (the bug that removed the old "guard" bridge).
+- `clicks: { externalLinks: 'a' }` in `mobile/f7.ts` is mandatory: F7's document-wide click handler then treats every `<a>` as external and returns **before** `preventDefault`, so SvelteKit's link handling (which bails when `event.defaultPrevented`) runs untouched. `ListItem link="…"` links therefore navigate exactly once, via SvelteKit.
+- `mobile/routes.ts`, `navigation.ts`, `browser-back.svelte.ts` (the `pushState` guard + `blockSvelteKitLinkNavigation`) and `edge-swipe-back.ts` were deleted with the F7 router. Do not reintroduce a second history manager: the browser's own back/edge-swipe/system-back pops SvelteKit history directly.
+- Page lifecycle events (`onPageAfterIn`, `pageInit`, …) never fire without the F7 router, so `onshow` was removed. Pages refetch in `onMount`: SvelteKit remounts the page component on every navigation to its route, including back navigation.
+- Params come from `$app/state` (`page.params.id`), same as the desktop skeletons.
 
 **Pages (`mobile/ui/page.base.svelte`)**
-- Keep the navbar `title` **static**. Changing it after mount broke the back link on the detail page.
-- Use the plain back link (`back` prop). Never use `backLinkUrl` or `backLinkForce`; they push a new page instead of going back.
-- `onshow` runs on `onPageAfterIn`, so a page can refresh when you return to it. Pull-to-refresh uses `onrefresh`.
+- Keep the navbar `title` **static**; changing it after mount is a known F7 quirk (navbar sizing).
+- Back is a custom `navLeft` snippet: the same DOM F7's `backLink` renders (`a.link.back.icon-only` + `i.icon-back`), but with its own `onclick` = `preventDefault()` + `history.back()` (or `goto('/todos')` when the app was deep-linked as the very first history entry, so Back never leaves the app). F7's `backLink` prop cannot be intercepted (the event is dropped before it reaches us) and renders `href="#"`; `backLinkUrl`/`backLinkForce` push a new page — never use them.
+- Pull-to-refresh: F7 creates PTR instances in its router's `pageInit` hook, which never runs. `page.base.svelte` calls `f7.ptr.create(el)` manually in `f7ready` — scoped to its own page via a `data-ptr-host` attribute so a still-mounted outgoing page can never be picked up — and `f7.ptr.destroy(el)` in `onDestroy`, the same lifecycle F7 uses in `pageBeforeRemove`.
+- The navbar must stay a direct child of `.page` for the `--f7-page-navbar-offset` CSS: `framework7-svelte`'s `<Page>` moves `[data-f7-slot="fixed"]` children (the `<Navbar>`) out of `.page-content` itself, with or without the router.
+
+**Route files and the layout**
+- `(app)/+layout.svelte` always renders `children` (wrapped in the lazy `MobileApp` on mobile), so routing is identical for both UIs; desktop never downloads Framework7.
+- Each `(app)/**/+page.svelte` branches on `detectUiMode()`: desktop skeleton via static import, mobile page via `{#await import(...)}` (keeps `framework7-svelte` out of the desktop bundle). Mobile pages render only once `MobileApp` has loaded.
+
+**Save/create must not push a history entry (`EditPage.mobile`, `NewPage.mobile`)**
+- Edit save → `history.back()` (pops the form entry; the detail remounts and refetches the saved data). Only when there is nothing in-app to pop (deep link as the first history entry) → `goto(detail, { replaceState: true })`.
+- Create → `goto(detail, { replaceState: true })`: the form entry is replaced by the detail entry, so the stack stays `list → detail`.
+- A plain `goto()` after saving pushed a second entry: Back from the detail returned to the stale form, then detail, then list — the exact bug these two flows exist to avoid. This is also why `history.back()` (not `goto`) is the in-app "go back" everywhere.
 
 **Components whose callbacks did not fire**
 - `fab.base.svelte` is built from F7's CSS classes (`fab fab-right-bottom`) with a native click handler. The `<Fab>` component's `onClick` did not fire and its `fixed` slot did not render.
@@ -267,11 +271,10 @@ These rules came from real bugs; keep them unless you re-test.
 
 1. Copy `modules/todos` to `modules/<name>` and rename the types, controller and pages.
 2. Add `network/features/<name>.ts` and export it from `network/index.ts`.
-3. Add routes under `routes/(app)/<name>/` that import the skeletons.
-4. For mobile, copy `mobile/modules/todos` and add the paths to `mobile/routes.ts`.
+3. Add routes under `routes/(app)/<name>/` that branch on `detectUiMode()`: the desktop skeleton (static import) and the mobile page (`{#await import(...)}`).
+4. For mobile, copy `mobile/modules/todos` and point the route's dynamic import at its pages.
 
 ## Known gaps
 
-- The browser/system back button bridge is new and untested. Reloading drops the guard entry until the app re-adds it on load; the forward button does nothing useful. Set `BROWSER_BACK = false` if it misbehaves.
-- The edge swipe is a quick-swipe handler, not an interactive drag (the page does not follow your finger).
 - Mock data resets on reload; there is no auth, no pagination and no other modules yet.
+- Mobile pages load per route via dynamic import, so the first visit to a route has a brief (already-cached after app load) async gap while its chunk arrives.

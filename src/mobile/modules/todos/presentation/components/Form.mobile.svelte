@@ -12,8 +12,16 @@
 		initial,
 		submitLabel = 'Save',
 		busy = false,
+		error = null,
 		onsubmit
-	}: { initial?: CreateTodoDto; submitLabel?: string; busy?: boolean; onsubmit: (dto: CreateTodoDto) => void } = $props();
+	}: {
+		initial?: CreateTodoDto;
+		submitLabel?: string;
+		busy?: boolean;
+		/** Save/create failure message from the page's submit handler; rendered here so ALL form UX lives in this component. */
+		error?: string | null;
+		onsubmit: (dto: CreateTodoDto) => void;
+	} = $props();
 
 	// Intentional: the form is seeded once from `initial`; later edits belong to the user.
 	let form = $state<CreateTodoDto>(untrack(() => ({ ...emptyTodoForm(), ...initial })));
@@ -26,6 +34,7 @@
 	}
 </script>
 
+{#if error}<p class="p-4 text-red-600">{error}</p>{/if}
 <List>
 	<Field label="Title" bind:value={form.title} error={errors.title} clearable />
 	<Field label="Description" type="textarea" bind:value={form.description} error={errors.description} />

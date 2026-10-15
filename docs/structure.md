@@ -16,7 +16,7 @@ todo-app/
 │   │   │       └── presentation/
 │   │   │           ├── components/
 │   │   │           │   ├── DataTable.mobile.svelte
-│   │   │           │   ├── TodoForm.mobile.svelte
+│   │   │           │   ├── Form.mobile.svelte
 │   │   │           │   └── TodosData.mobile.svelte
 │   │   │           └── pages/
 │   │   │               ├── DetailPage.mobile.svelte
@@ -264,8 +264,8 @@ These rules came from real bugs; keep them unless you re-test.
 - Empty filtered list shows a hint instead of a blank page.
 
 **Form safety**
-- `TodoForm.*` seeds its state once from `initial` using `untrack`.
-- New and Edit pages catch errors and show a red message. The mock falls back to a generated id when `crypto.randomUUID()` is unavailable (insecure origins such as `http://192.168.x.x`).
+- `Form.mobile.svelte` (formerly `TodoForm.mobile.svelte`) owns ALL mobile form UI: field list, submit button with `busy` label, validation errors, and the save-failure banner — the pages pass `error`/`busy` down instead of rendering their own red message. It seeds its state once from `initial` using `untrack`.
+- New and Edit pages catch errors and pass them to `Form`. The mock falls back to a generated id when `crypto.randomUUID()` is unavailable (insecure origins such as `http://192.168.x.x`).
 
 ## Environment (`.env`)
 

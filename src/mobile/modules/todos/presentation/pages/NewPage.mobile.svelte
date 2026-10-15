@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import Page from '$mobile/ui/page.base.svelte';
-	import TodoForm from '../components/TodoForm.mobile.svelte';
+	import Form from '../components/Form.mobile.svelte';
 	import { todoApi } from '$modules/todos/data/api';
 	import type { CreateTodoDto } from '$modules/todos/domain/types';
 
@@ -27,6 +27,5 @@
 </script>
 
 <Page title="New todo" back>
-	{#if error}<p class="p-4 text-red-600">{error}</p>{/if}
-	<TodoForm submitLabel="Create" {busy} onsubmit={create} />
+	<Form submitLabel="Create" {busy} {error} onsubmit={create} />
 </Page>

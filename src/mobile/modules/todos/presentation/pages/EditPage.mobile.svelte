@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import Page from '$mobile/ui/page.base.svelte';
 	import { SkeletonText } from 'framework7-svelte';
-	import TodoForm from '../components/TodoForm.mobile.svelte';
+	import Form from '../components/Form.mobile.svelte';
 	import { TodoItemController } from '$modules/todos/domain/todo-route-controllers.svelte';
 	import { todoApi } from '$modules/todos/data/api';
 	import type { CreateTodoDto } from '$modules/todos/domain/types';
@@ -34,12 +34,12 @@
 </script>
 
 <Page title="Edit todo" back>
-	{#if error}<p class="p-4 text-red-600">{error}</p>{/if}
 	{#if c.todo}
-		<TodoForm
+		<Form
 			initial={{ title: c.todo.title, description: c.todo.description, priority: c.todo.priority, dueDate: c.todo.dueDate }}
 			submitLabel="Save changes"
 			{busy}
+			{error}
 			onsubmit={save}
 		/>
 	{:else if c.loading}

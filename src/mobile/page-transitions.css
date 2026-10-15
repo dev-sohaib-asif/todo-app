@@ -1,18 +1,45 @@
-/* Page transitions replacing Framework7's router animations, via the View
-   Transitions API. Direction is set on <html data-vt="forward|backward"> by
-   MobileApp's onNavigate hook. Keyframes (ios-page-*, md-page-*) and the
-   --f7-page-transition-duration variable ship with framework7/css/bundle. */
+/* ===========================================================================
+   PAGE TRANSITIONS — restores the page push/pop animations that died with
+   Framework7's router (SvelteKit replaced it, and SvelteKit has no animations).
 
+   HOW THE PIECES FIT TOGETHER (3 steps):
+   1. MobileApp.svelte's onNavigate hook fires on every mobile navigation,
+      sets <html data-vt="forward|backward"> (direction = URL depth compare:
+      /todos -> /todos/5 = forward, /todos/5/edit -> /todos/5 = backward), then
+      wraps the navigation in document.startViewTransition().
+   2. The browser snapshots the page BEFORE the swap ("old"), applies SvelteKit's
+      DOM update, snapshots the page AFTER ("new"), and plays ::view-transition-
+      old/new(root) animations between the two snapshots.
+   3. THIS FILE decides which animation plays, based on <html>'s theme class
+      (.ios/.md, set by Framework7 at app init) + [data-vt] direction.
+
+   The @keyframes (ios-page-*, md-page-*) and --f7-page-transition-duration
+   (400ms) are NOT defined here — they ship inside framework7/css/bundle
+   (Framework7's own stylesheet), so timings/curves are byte-identical to what
+   the old F7 router animated. This file only REFERENCES them.
+
+   Boundaries: desktop never loads MobileApp.svelte, so desktop never gets this.
+   Browsers without the View Transitions API skip the hook entirely (instant
+   swap). prefers-reduced-motion kills the animation entirely.
+   =========================================================================== */
+
+/* Fill color for the gap exposed while one page slides over/under another.
+   Uses F7's page bg so it matches light/dark theme automatically. */
 ::view-transition {
   background: var(--f7-page-bg-color, #fff);
 }
 
+/* Defaults for BOTH snapshots of every transition: F7's own 400ms duration,
+   fill both so pages hold their final position (forwards) once done. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: var(--f7-page-transition-duration, 400ms);
   animation-fill-mode: both;
 }
 
+/* --- iOS (html.ios), FORWARD = push (list -> detail) ----------------------
+   New page slides in from the right edge (100% -> 0); the current page parallaxes
+   left 20% underneath it (F7's classic iOS push). New stays on top (default z). */
 html.ios[data-vt='forward']::view-transition-old(root) {
   animation-name: ios-page-current-to-previous;
 }
@@ -21,6 +48,10 @@ html.ios[data-vt='forward']::view-transition-new(root) {
   animation-name: ios-page-next-to-current;
 }
 
+/* --- iOS, BACKWARD = pop (detail -> list) ---------------------------------
+   The leaving page slides OUT to the right (0 -> 100%) and must render ON TOP
+   (z-index 2) so it uncovers the incoming page; the incoming page comes back
+   from -20%. Mirror image of forward. */
 html.ios[data-vt='backward']::view-transition-old(root) {
   z-index: 2;
   animation-name: ios-page-current-to-next;
@@ -31,6 +62,9 @@ html.ios[data-vt='backward']::view-transition-new(root) {
   animation-name: ios-page-previous-to-current;
 }
 
+/* --- Material (html.md), FORWARD = push -----------------------------------
+   Material slides the new page in only 128px + eases the old page -24px left
+   (no full-width slide) with F7's Material curve cubic-bezier(0, 0.8, 0.3, 1). */
 html.md[data-vt='forward']::view-transition-old(root) {
   animation-name: md-page-current-to-previous;
   animation-timing-function: cubic-bezier(0, 0.8, 0.3, 1);
@@ -41,6 +75,11 @@ html.md[data-vt='forward']::view-transition-new(root) {
   animation-timing-function: cubic-bezier(0, 0.8, 0.3, 1);
 }
 
+/* --- Material, BACKWARD = pop ---------------------------------------------
+   Half duration (200ms = 400ms / 2, exactly as F7 does it) because Material
+   dismisses faster than it opens. Leaving page: slides right 128px + fades out
+   (two stacked animations), rendered on top (z-index 2). Incoming page slides
+   from -24px back to 0. */
 html.md[data-vt='backward']::view-transition-old(root) {
   z-index: 2;
   animation-name: md-page-current-to-next, md-page-current-to-next-opacity;
@@ -55,6 +94,8 @@ html.md[data-vt='backward']::view-transition-new(root) {
   animation-timing-function: cubic-bezier(0, 1, 0.8, 1);
 }
 
+/* Accessibility: users who asked for no motion get an instant page swap.
+   (The JS hook also skips these transitions entirely; this is the CSS backstop.) */
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),
   ::view-transition-new(root) {

@@ -7,6 +7,9 @@
 	import List from '$mobile/ui/list.base.svelte';
 	import ListItem from '$mobile/ui/list-item.base.svelte';
 	import Button from '$mobile/ui/button.base.svelte';
+	// Shared back helper (ui/back.ts): pops browser history to return to the list —
+	// same function the navbar back button and edge-swipe gesture use, so after a
+	// delete we land on the list with ONE history pop (no duplicate navigations).
 	import { goBack } from '$mobile/ui/back';
 	import { TodoItemController } from '$modules/todos/domain/todo-route-controllers.svelte';
 	import { todoApi } from '$modules/todos/data/api';
@@ -19,7 +22,7 @@
 		f7.dialog.confirm('Delete this todo?', 'Delete', async () => {
 			await todoApi.remove(c.todo!.id);
 			f7.toast.show({ text: 'Todo deleted', closeTimeout: 2000 });
-			goBack(); // pop back to the list (the entry behind this detail)
+			goBack(); // not goto(): pop THIS detail page's history entry (falls back to /todos on a deep link)
 		});
 	}
 </script>

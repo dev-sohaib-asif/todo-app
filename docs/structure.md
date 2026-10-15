@@ -23,17 +23,20 @@ todo-app/
 │   │   │               ├── ListPage.mobile.svelte
 │   │   │               └── NewPage.mobile.svelte
 │   │   ├── ui/
-│   │   │   ├── back.ts
 │   │   │   ├── button.base.svelte
 │   │   │   ├── fab.base.svelte
 │   │   │   ├── field.base.svelte
 │   │   │   ├── list-item.base.svelte
 │   │   │   ├── list.base.svelte
 │   │   │   └── page.base.svelte
+│   │   ├── router_clone/
+│   │   │   ├── application/
+│   │   │   │   ├── back.ts
+│   │   │   │   └── edge-swipe-back.ts
+│   │   │   └── presentation/
+│   │   │       └── page-transitions.css
 │   │   ├── MobileApp.svelte
-│   │   ├── edge-swipe-back.ts
-│   │   ├── f7.ts
-│   │   └── page-transitions.css
+│   │   └── f7.ts
 │   ├── modules/
 │   │   └── todos/
 │   │       ├── data/
@@ -222,14 +225,14 @@ These rules came from real bugs; keep them unless you re-test.
 - Page lifecycle events (`onPageAfterIn`, `pageInit`, …) never fire without the F7 router, so `onshow` was removed. Pages refetch in `onMount`: SvelteKit remounts the page component on every navigation to its route, including back navigation.
 - Params come from `$app/state` (`page.params.id`), same as the desktop skeletons.
 
-**Page transitions (`MobileApp.svelte` + `page-transitions.css`)**
+**Page transitions (`MobileApp.svelte` + `router_clone/presentation/page-transitions.css`)**
 - F7's router used to animate push/pop; that is reimplemented with the **View Transitions API**: `onNavigate` in `MobileApp.svelte` (mobile-only mount point) calls `document.startViewTransition`, sets `data-vt="forward|backward"` on `<html>` from route-depth comparison, and resolves its promise inside the transition callback (SvelteKit's documented pattern) while awaiting `navigation.complete`.
 - `page-transitions.css` reuses F7's own keyframes (`ios-page-*`, `md-page-*`, `--f7-page-transition-duration`) on `::view-transition-old/new(root)`, scoped by `html.ios` / `html.md` + `[data-vt]`. `data-vt` is removed when the transition finishes.
 - Skipped entirely when `document.startViewTransition` is missing or `prefers-reduced-motion: reduce` is set (instant swap, same as no transition). Desktop never registers the hook.
 
-**Edge-swipe back (`mobile/edge-swipe-back.ts`)**
-- Revived as a plain touch gesture (no router): a quick left-edge swipe right on any page with `back` calls the shared `ui/back.ts` `goBack()` (`history.back()`, deep-link fallback `goto('/todos')`). Wired in `page.base.svelte`'s `onMount` only when `back` is set; cleanup on unmount. It is **non-interactive** (the page does not follow the finger) — that keeps it compatible with PTR and swipeout, and one gesture can never go back twice.
-- All in-app "go back" call sites use `ui/back.ts` — never `goto()` for back, which would push a new entry.
+**Edge-swipe back (`mobile/router_clone/application/edge-swipe-back.ts`)**
+- Revived as a plain touch gesture (no router): a quick left-edge swipe right on any page with `back` calls the shared `router_clone/application/back.ts` `goBack()` (`history.back()`, deep-link fallback `goto('/todos')`). Wired in `page.base.svelte`'s `onMount` only when `back` is set; cleanup on unmount. It is **non-interactive** (the page does not follow the finger) — that keeps it compatible with PTR and swipeout, and one gesture can never go back twice.
+- All in-app "go back" call sites use `router_clone/application/back.ts` — never `goto()` for back, which would push a new entry.
 
 **Pages (`mobile/ui/page.base.svelte`)**
 - Keep the navbar `title` **static**; changing it after mount is a known F7 quirk (navbar sizing).
@@ -255,7 +258,7 @@ These rules came from real bugs; keep them unless you re-test.
 **List page UX (`ListPage.mobile.svelte`)**
 - F7 `.segmented segment-colored` filter buttons (All/Active/Done) bound to the shared controller's `filter` state (same filter values as the desktop skeleton).
 - Loading state uses F7 skeleton rows (`.skeleton-text` + `.skeleton-effect-wave`) instead of plain "Loading…" text; Edit/Detail pages use the same pattern.
-- Swipe-delete and Detail delete both show `f7.toast` ("Todo deleted"); Detail delete confirms via `f7.dialog.confirm` and pops back with `ui/back.ts`.
+- Swipe-delete and Detail delete both show `f7.toast` ("Todo deleted"); Detail delete confirms via `f7.dialog.confirm` and pops back with `router_clone/application/back.ts`.
 - Empty filtered list shows a hint instead of a blank page.
 
 **Form safety**

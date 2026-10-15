@@ -1,9 +1,10 @@
 <script lang="ts">
 	import 'framework7/css/bundle';
 	// Page push/pop animations (iOS slide / Material fade-slide), restoring what
-	// Framework7's router used to animate. CSS half of the feature; the onNavigate
-	// hook below is the JS half. Desktop never loads MobileApp, so desktop never gets it.
-	import './page-transitions.css';
+	// Framework7's router used to animate. CSS half of the feature
+	// (router_clone/presentation/page-transitions.css); the onNavigate hook below
+	// is the JS half. Desktop never loads MobileApp, so desktop never gets it.
+	import './router_clone/presentation/page-transitions.css';
 	import { onNavigate } from '$app/navigation';
 	import { App } from 'framework7-svelte';
 	import { f7params } from './f7';

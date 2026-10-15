@@ -7,10 +7,10 @@
 	import List from '$mobile/ui/list.base.svelte';
 	import ListItem from '$mobile/ui/list-item.base.svelte';
 	import Button from '$mobile/ui/button.base.svelte';
-	// Shared back helper (ui/back.ts): pops browser history to return to the list —
-	// same function the navbar back button and edge-swipe gesture use, so after a
-	// delete we land on the list with ONE history pop (no duplicate navigations).
-	import { goBack } from '$mobile/ui/back';
+	// Shared back helper (router_clone/application/back.ts): pops browser history to
+	// return to the list — same function the navbar back button and edge-swipe gesture
+	// use, so after a delete we land on the list with ONE history pop (no duplicates).
+	import { goBack } from '$mobile/router_clone/application/back';
 	import { TodoItemController } from '$modules/todos/domain/todo-route-controllers.svelte';
 	import { todoApi } from '$modules/todos/data/api';
 

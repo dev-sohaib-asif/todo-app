@@ -1,4 +1,4 @@
-import { goBack } from './ui/back';
+import { goBack } from './back';
 
 /* ===========================================================================
    EDGE-SWIPE-BACK — restores Framework7's router swipe-back gesture.
@@ -20,6 +20,7 @@ import { goBack } from './ui/back';
    `back` prop (Detail/Edit/New). The list root has nothing to pop, so it never
    enables this. onMount's return value is the cleanup below, so listeners are
    removed on page unmount: exactly one page's listeners exist at any time.
+   Lives in router_clone/application/ next to its helper back.ts.
 
    Detects both touch (real phones, DevTools touch emulation) and mouse-pointer
    events (desktop browser using ?ui=mobile without touch emulation).
@@ -50,7 +51,7 @@ export function enableEdgeSwipeBack(): () => void {
 		const dt = Date.now() - start.t;
 		start = null;
 		if (dx < MIN_DX || dy > MAX_DY || dt > MAX_MS) return; // not a valid swipe
-		goBack(); // shared with the navbar back link (ui/back.ts)
+		goBack(); // shared with the navbar back link (router_clone/application/back.ts)
 	};
 
 	// Touch events (phones, tablets, DevTools touch emulation): still delivered when the browser starts panning.

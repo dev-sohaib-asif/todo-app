@@ -1,7 +1,8 @@
 import { goto } from '$app/navigation';
 
 /**
- * THE single "go back" helper for the mobile app.
+ * THE single "go back" helper for the mobile app
+ * (router_clone/application/back.ts — "application" layer of the router clone).
  *
  * Framework7's router used to own back navigation (router.back()); SvelteKit owns
  * routing now, so every back action in the app (navbar back button, left-edge swipe,

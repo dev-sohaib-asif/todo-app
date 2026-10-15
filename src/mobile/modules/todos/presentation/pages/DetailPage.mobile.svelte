@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { f7 } from 'framework7-svelte';
+	import { f7, SkeletonText } from 'framework7-svelte';
 	import Page from '$mobile/ui/page.base.svelte';
 	import List from '$mobile/ui/list.base.svelte';
 	import ListItem from '$mobile/ui/list-item.base.svelte';
@@ -29,11 +29,14 @@
 
 <Page title="Todo" back>
 	{#if c.loading && !c.todo}
-		<ul class="list skeleton-effect-wave">
+		<!-- F7 SkeletonText component (framework7-svelte -> skeleton-elements):
+		     renders <span class="skeleton-text skeleton-effect-wave"> sized by slot
+		     text length; effect per bar instead of on the whole <ul>. -->
+		<ul class="list">
 			{#each Array(4) as _}
 				<li>
 					<div class="item-content">
-						<div class="item-inner"><div class="skeleton-text">Todo detail placeholder</div></div>
+						<div class="item-inner"><SkeletonText effect="wave">Todo detail placeholder</SkeletonText></div>
 					</div>
 				</li>
 			{/each}

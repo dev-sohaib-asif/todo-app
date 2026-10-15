@@ -15,6 +15,7 @@ todo-app/
 │   │   │   └── todos/
 │   │   │       └── presentation/
 │   │   │           ├── components/
+│   │   │           │   ├── DataTable.mobile.svelte
 │   │   │           │   ├── TodoForm.mobile.svelte
 │   │   │           │   └── TodosData.mobile.svelte
 │   │   │           └── pages/
@@ -181,7 +182,7 @@ Empty folder not shown: `static/`.
 
 Rules:
 - Only `shared/presentation/ui/*.base.svelte` imports shadcn-ui.
-- Only `mobile/ui/*.base.svelte` and `mobile/MobileApp.svelte` touch Framework7 (the `framework7-svelte` package or its CSS classes).
+- Only the mobile layer (`mobile/ui/*.base.svelte`, `mobile/MobileApp.svelte`, and `mobile/**` pages/components such as `DataTable`) touches Framework7 (the `framework7-svelte` package or its CSS classes). Desktop code never imports it.
 - `domain/`, `data/` and `network/` never import any UI library, so both UIs share them.
 - Route files call `detectUiMode()` and branch: desktop skeleton (static import) or mobile page (dynamic import, so `framework7-svelte` never enters the desktop bundle). No other logic.
 
@@ -204,6 +205,7 @@ Rules:
 | `mobile/f7.ts` | Framework7 install (`Framework7.use(...)`) and params. `clicks: { externalLinks: 'a' }` is mandatory: it stops F7 from intercepting `<a>` clicks so SvelteKit's link handling runs untouched. |
 | `mobile/ui/*.base.svelte` | Mobile wrappers: `page`, `list`, `list-item`, `field`, `button`, `fab`. |
 | `mobile/modules/todos/presentation` | Mobile pages and components; reuse the shared domain and data layers. |
+| `mobile/modules/todos/presentation/components/DataTable.mobile.svelte` | Mobile todos table UI: segmented filter, remaining counter, error line, loading skeleton (`SkeletonText`), empty state, rows. Presentational only; `ListPage` wires it to the controller. |
 
 ## UI selection (`shared/application/device.ts`)
 

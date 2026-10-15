@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import Page from '$mobile/ui/page.base.svelte';
+	import { SkeletonText } from 'framework7-svelte';
 	import TodoForm from '../components/TodoForm.mobile.svelte';
 	import { TodoItemController } from '$modules/todos/domain/todo-route-controllers.svelte';
 	import { todoApi } from '$modules/todos/data/api';
@@ -42,13 +43,17 @@
 			onsubmit={save}
 		/>
 	{:else if c.loading}
-		<ul class="list skeleton-effect-wave">
+		<!-- F7 SkeletonText components (framework7-svelte -> skeleton-elements):
+		     each bar is a <span class="skeleton-text skeleton-effect-wave"> sized by
+		     slot text; the typed .d.ts only accepts `effect`, so item-title/item-label
+		     styling wraps the component instead of being passed as a prop. -->
+		<ul class="list">
 			{#each Array(4) as _}
 				<li>
 					<div class="item-content item-input">
 						<div class="item-inner">
-							<div class="item-title item-label skeleton-text">Field label</div>
-							<div class="item-input-wrap"><div class="skeleton-text">Input value text</div></div>
+							<div class="item-title item-label"><SkeletonText effect="wave">Field label</SkeletonText></div>
+							<div class="item-input-wrap"><SkeletonText effect="wave">Input value text</SkeletonText></div>
 						</div>
 					</div>
 				</li>
